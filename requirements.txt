@@ -6,4 +6,4 @@ docx2pdf
 pdfplumber
 PyMuPDF
 python-docx
-opencv-python
+opencv-python-headless
