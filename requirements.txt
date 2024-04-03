@@ -5,3 +5,4 @@ pdf2image
 docx2pdf
 pdfplumber
 PyMuPDF
+python-docx
