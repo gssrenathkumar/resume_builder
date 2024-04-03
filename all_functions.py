@@ -21,20 +21,26 @@ from io import BytesIO
 import os
 import shutil
 from docx2pdf import convert
+from PIL import Image, ImageDraw
 
+#----------------------------
+
+
+#------------------------
 
 def remove_pdf_and_docx_files_in_script_directory():
     """
-    Remove all PDF and DOCX files from the directory where this script is located.
+    Remove all PDF, DOCX, PNG, JPEG, and JPG files from the directory where this script is located.
     """
     directory = os.path.dirname(os.path.abspath(__file__))
     for filename in os.listdir(directory):
-        if filename.endswith(".pdf") or filename.endswith(".docx"):
+        if filename.endswith((".pdf", ".docx", ".png", ".jpeg", ".jpg")):
             file_path = os.path.join(directory, filename)
             try:
                 os.remove(file_path)
             except Exception as e:
-                pass  # Silently ignore any errors.
+                pass
+
 
 
 def convert_to_pdf_if_docx(file_path):
@@ -99,6 +105,8 @@ def replace_hyphens_with_bullet_points(doc_name):
     for para in document.paragraphs:
         if '>' in para.text:
             para.text = para.text.replace('>', '\u2022')
+        if 'None' in para.text:
+            para.text = para.text.replace('None',' ')
     return document
     
 def replace_symbol_with_dash(doc_name):
@@ -129,16 +137,20 @@ def extract_text_from_pdf(uploaded_file):
 
 # Function to get response from text-based model for name query
 def get_name_response(input_text):
-    input_prompt = """
-        You are a resume analyzer. You have to extract the data from the resume text. 
-        You will have to answer the questions based on the input resume text.
-        
-    """
-    name_query = "What is the person name in the resume"
-    query = input_prompt + name_query
-    model = genai.GenerativeModel("gemini-pro")
-    response = model.generate_content([input_text, query])
-    return response.text
+    try:
+        input_prompt = """
+            You are a resume analyzer. You have to extract the data from the resume text. 
+            You will have to answer the questions based on the input resume text.
+            
+        """
+        name_query = "What is the person name in the resume"
+        query = input_prompt + name_query
+        model = genai.GenerativeModel("gemini-pro")
+        response = model.generate_content([input_text, query])
+        return response.text
+    except InvalidArgument as e:
+        st.error("API Key is invalid. Please pass a valid API key.")
+        st.stop()
 
 
 # Function to get response from text-based model for summary query
@@ -148,7 +160,7 @@ def get_summary_response(input_text):
         You will have to answer the questions based on the input resume text.
         
     """
-    summary_query = "Generate one paragraph Experience Summary of 8 lines give it as the resume owner is giving his experience in summary.Dont give details of working place. Exclude personal pronouns such as I, Iam, Myself,meet etc. Expain what I have done.In case if personal pronouns are missing, dont not add one. State only facts.I want it in one paragraph."
+    summary_query = ".Format is one paragraph.Generate one paragraph Experience Summary of 8 lines give it as the resume owner is giving his experience in summary.Dont give details of working place. Exclude personal pronouns such as I, Iam, Myself,meet etc. Expain what I have done.In case if personal pronouns are missing, dont not add one. State only facts.I want it in one paragraph."
     query = input_prompt + summary_query
     model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content([input_text, query])
@@ -171,7 +183,7 @@ The Format is
 > Certificate 3
 > Certificate 4
 
-If there are no certificates, return blank space.
+If there are no certificates, then print None.
 """
 
     model = genai.GenerativeModel("gemini-pro")
@@ -467,10 +479,10 @@ def get_work_experience_response(input_text):
 Generate project details in the following format for each project in the work or internship experience:
 Remeber the format given is very important which should be generated as per the given below
 ?/Project #1?/ \n
-?/Title:?/ Title of the project 
-?/Role :?/ role name
-?/Period:?/ Project Period.Format is year1 &! year2 \n
-?/Technologies used :?/ technologies used in this project \n
+?/Title:?/ Project Title.If there are no project title, then print None
+?/Role :?/ What was the role of mine.If there are no role name specified, then print None
+?/Period:?/ Project Period.Format is year1 &! year2
+?/Technologies used :?/ technologies used in this project.If there are no skills specified, then print None \n
 ?/Role and Responsibilities:?/
 > Responsibility 1
 > Responsibility 2
@@ -491,10 +503,10 @@ Generate project details in the following format for each project in the work or
 Remeber the format given is very important which should be generated as per the given below
 ?/Project #1?/ \n
 ?/Organization:?/ Organization Name
-?/Title:?/ Title of the project 
-?/Role :?/ role name
-?/Period:?/ Project Period.Format is year1 &! year2 \n
-?/Technologies used :?/ technologies used in this project \n
+?/Title:?/ Project Title.If there are no project title, then print None
+?/Role :?/ What was the role of mine.If there are no role name specified, then print None
+?/Period:?/ Project Period.Format is year1 &! year2
+?/Technologies used :?/ technologies used in this project.If there are no skills specified, then print None \n
 ?/Role and Responsibilities:?/
 > Responsibility 1
 > Responsibility 2
@@ -730,7 +742,7 @@ import os
 from docx import Document
 from docx.shared import Inches
 
-def replace_placeholder_with_image(doc_path, image_path, image_width_inches=1):
+def replace_placeholder_with_image(doc_path, image_path, image_width_inches=1.5):
     """
     Search for a placeholder in the document and replace it with an image or a blank
     if the image path is not valid.
