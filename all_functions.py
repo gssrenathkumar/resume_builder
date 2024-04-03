@@ -14,11 +14,7 @@ from docx.shared import Pt
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import cv2
-from PIL import Image
-import streamlit as st
 from zipfile import ZipFile
-from io import BytesIO
-import os
 import shutil
 from docx2pdf import convert
 from PIL import Image, ImageDraw
@@ -479,7 +475,7 @@ def get_work_experience_response(input_text):
 Generate project details in the following format for each project in the work or internship experience:
 Remeber the format given is very important which should be generated as per the given below
 ?/Project #1?/ \n
-?/Title:?/ Project Title.If there are no project title, then print None
+?/Title:?/ Project Title
 ?/Role :?/ What was the role of mine.If there are no role name specified, then print None
 ?/Period:?/ Project Period.Format is year1 &! year2
 ?/Technologies used :?/ technologies used in this project.If there are no skills specified, then print None \n
@@ -503,7 +499,7 @@ Generate project details in the following format for each project in the work or
 Remeber the format given is very important which should be generated as per the given below
 ?/Project #1?/ \n
 ?/Organization:?/ Organization Name
-?/Title:?/ Project Title.If there are no project title, then print None
+?/Title:?/ Project Title
 ?/Role :?/ What was the role of mine.If there are no role name specified, then print None
 ?/Period:?/ Project Period.Format is year1 &! year2
 ?/Technologies used :?/ technologies used in this project.If there are no skills specified, then print None \n
