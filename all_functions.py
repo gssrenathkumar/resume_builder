@@ -18,7 +18,8 @@ from zipfile import ZipFile
 import shutil
 from docx2pdf import convert
 from PIL import Image, ImageDraw
-
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 #----------------------------
 
 
@@ -50,13 +51,35 @@ def convert_to_pdf_if_docx(file_path):
     Returns:
     - str: Converted file path if it's a .docx, else the original file path.
     """
-    file_name, file_extension = os.path.splitext(file_path)
-    
-    if file_extension.lower() == '.docx':
-        pdf_file_path = f"{file_name}.pdf"
-        convert(file_path, pdf_file_path)
-        return pdf_file_path
+    # Check if the file is a .docx
+    if file_path.endswith('.docx'):
+        # Define the PDF path
+        pdf_path = file_path.rsplit('.', 1)[0] + '.pdf'
+        
+        # Load the .docx document
+        document = Document(file_path)
+        
+        # Set up the PDF canvas
+        c = canvas.Canvas(pdf_path, pagesize=letter)
+        width, height = letter  # Get width and height of the page
+        
+        # Simple text positioning for demonstration purposes
+        y_position = height - 72  # Start 1 inch from the top
+        for paragraph in document.paragraphs:
+            c.drawString(72, y_position, paragraph.text)
+            y_position -= 12  # Move down 12 points for the next line
+            
+            # Check if we're near the bottom of the page
+            if y_position < 72:
+                c.showPage()  # Start a new page
+                y_position = height - 72  # Reset the y position
+        
+        c.save()
+        
+        # Return the PDF path
+        return pdf_path
     else:
+        # Return the original file path if it's not a .docx file
         return file_path
 
 # Function to delete directories
