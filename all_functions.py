@@ -734,7 +734,6 @@ def save_document(uploaded_file):
     if uploaded_file is not None:
         with open(uploaded_file.name, 'wb') as f:
             f.write(uploaded_file.getvalue())
-        st.success("Document saved successfully.")
         return uploaded_file.name
     else:
         st.warning("Please upload a document.")
