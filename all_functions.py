@@ -36,7 +36,7 @@ def get_education_details_overall(input_text):
     """
     name_query = "Your objective is to scrutinize the provided input text, identifying and extracting mentions of academic degrees and diplomas. With each qualification you find, you must also capture and include the name of the institute that awarded it, as well as the year the degree or diploma was awarded. Focus exclusively on academic degrees (e.g., B.A., M.S., Ph.D.) and diplomas. Organize your findings in a structured list format, where each entry is formatted as follows: 'Degree/Diploma, Institute Name, Year of Study.' Ensure precision in detailing the titles of degrees/diplomas, the names of the institutions, and the correct corresponding years. Omit any educational details that do not directly correspond to this format or that do not include academic degrees or diplomas."
     query = input_prompt + name_query
-    model = genai.GenerativeModel("gemini-pro")
+    model = genai.GenerativeModel("gemini-1.0-pro")
     response = model.generate_content([input_text, query])
     return response.text
 
