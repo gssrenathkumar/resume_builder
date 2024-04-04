@@ -96,7 +96,7 @@ def process_resume(uploaded_files, filename):
         func.remove_characters_from_docx2(output_path)
         updated_doc1 = func.replace_symbol_with_dash(output_path)
         updated_doc1.save(output_path)
-        time.sleep(5)
+        time.sleep(2)
         func.func.process_docx11(output_path)
         func.delete_rows_with_any_empty_cells(output_path)
         st.success(f"{filename}-document processed successfully.")
@@ -142,7 +142,7 @@ def process_resume_2(uploaded_files, filename):
         updated_doc = func.replace_hyphens_with_bullet_points(output_path)
         updated_doc.save(output_path)
 
-        time.sleep(5)
+        time.sleep(2)
         func.process_docx11(output_path)
         func.delete_rows_with_any_empty_cells(output_path)
         func.remove_characters_from_docx2(output_path)
@@ -196,14 +196,13 @@ def process_resume_3(uploaded_files,filename):
         func.remove_characters_from_docx2(output_path)
         updated_doc1 = func.replace_symbol_with_dash(output_path)
         updated_doc1.save(output_path)
-        time.sleep(5)
+        time.sleep(2)
         func.func.process_docx11(output_path)
         func.delete_rows_with_any_empty_cells(output_path)
 
         # Task from pdf to image
         filename = func.save_document(uploaded_files)
         filename = func.convert_to_pdf_if_docx(filename)
-        st.write(filename)
         out_path1 = func.pdf_to_image(filename)
         func.extract_and_save_passport_photo(out_path1)
         image_path = 'passport_photo.png'
@@ -214,78 +213,45 @@ def process_resume_3(uploaded_files,filename):
         
     except FileNotFoundError as e:
         st.error(str(e))      
-        
 # Function to process and save DOCX file
-def process_and_save(uploaded_files, process_func):
+def process_and_save(uploaded_files, process_func, folder_path):
     if uploaded_files:
-        os.makedirs("agilisium_resume_internal_template", exist_ok=True)  # Create a folder to store the documents
-        os.makedirs("agilisium_resume_client_format", exist_ok=True)
-        os.makedirs("agilisium_resume_client_format_2", exist_ok=True)
+        os.makedirs(folder_path, exist_ok=True)  # Create a folder to store the documents
         for uploaded_file in uploaded_files:
             filename = os.path.splitext(uploaded_file.name)[0]  # Remove the file extension
-            process_func(uploaded_file, filename)    
-        
+            process_func(uploaded_file, filename)
+        # Once processing is done, zip and offer the folder for download
+        zipped_bytes_io = func.zip_folder_to_bytesio(folder_path)
+        st.download_button(
+            label="Download Zip Folder",
+            data=zipped_bytes_io,
+            file_name=f"{folder_path}.zip",
+            mime="application/zip"
+        )
+
 # Button functions
 def internal_template_button(uploaded_files):
-    if uploaded_files is not None:
-        process_and_save(uploaded_files, process_resume)
+    process_and_save(uploaded_files, process_resume, "agilisium_resume_internal_template")
 
 def client_template_button(uploaded_files):
-    if uploaded_files is not None:
-        process_and_save(uploaded_files, process_resume_2)
+    process_and_save(uploaded_files, process_resume_2, "agilisium_resume_client_format")
 
 def client_template_with_photo_button(uploaded_files):
-    if uploaded_files is not None:
-        process_and_save(uploaded_files, process_resume_3)
+    process_and_save(uploaded_files, process_resume_3, "agilisium_resume_client_format_2")
     
 
 
 # File upload
-uploaded_files = file_upload()
+uploaded_files = file_upload()  # Implement file_upload to handle file upload
 directories = ["agilisium_resume_internal_template", "agilisium_resume_client_format", "agilisium_resume_client_format_2"]
-func.delete_directories(directories)
-# Button creation
+func.delete_directories(directories)  # Implement func.delete_directories to clean up before starting
+
 st.sidebar.subheader("Choose Template:")
 if st.sidebar.button("Internal Template") and uploaded_files is not None:
     internal_template_button(uploaded_files)
-    # Initialize or get the existing BytesIO object from session state
-    if 'zipped_bytes_io' not in st.session_state:
-        # Assume 'agilisium_resume_client_format' is the folder you want to zip
-        folder_path = "agilisium_resume_internal_template"
-        st.session_state.zipped_bytes_io = func.zip_folder_to_bytesio(folder_path)
-        st.download_button(
-            label="Download Zip Folder",
-            data=st.session_state.zipped_bytes_io,
-            file_name=f"{folder_path}.zip",
-            mime="application/zip"
-        )
 
-    
-
-if st.sidebar.button("Client Template"):
+if st.sidebar.button("Client Template") and uploaded_files is not None:
     client_template_button(uploaded_files)
-    # Initialize or get the existing BytesIO object from session state
-    if 'zipped_bytes_io' not in st.session_state:
-        # Assume 'agilisium_resume_client_format' is the folder you want to zip
-        folder_path = "agilisium_resume_client_format"
-        st.session_state.zipped_bytes_io = func.zip_folder_to_bytesio(folder_path)
-        st.download_button(
-            label="Download Zip Folder",
-            data=st.session_state.zipped_bytes_io,
-            file_name=f"{folder_path}.zip",
-            mime="application/zip"
-        )
-    
-if st.sidebar.button("Client Template with Photo"):
+
+if st.sidebar.button("Client Template with Photo") and uploaded_files is not None:
     client_template_with_photo_button(uploaded_files)
-    # Initialize or get the existing BytesIO object from session state
-    if 'zipped_bytes_io' not in st.session_state:
-        # Assume 'agilisium_resume_client_format' is the folder you want to zip
-        folder_path = "agilisium_resume_client_format_2"
-        st.session_state.zipped_bytes_io = func.zip_folder_to_bytesio(folder_path)
-        st.download_button(
-            label="Download Zip Folder",
-            data=st.session_state.zipped_bytes_io,
-            file_name=f"{folder_path}.zip",
-            mime="application/zip"
-        )
