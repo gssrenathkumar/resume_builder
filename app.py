@@ -244,14 +244,20 @@ def client_template_with_photo_button(uploaded_files):
 # File upload
 uploaded_files = file_upload()  # Implement file_upload to handle file upload
 directories = ["agilisium_resume_internal_template", "agilisium_resume_client_format", "agilisium_resume_client_format_2"]
-func.delete_directories(directories)  # Implement func.delete_directories to clean up before starting
+ # Implement func.delete_directories to clean up before starting
 
 st.sidebar.subheader("Choose Template:")
 if st.sidebar.button("Internal Template") and uploaded_files is not None:
+    func.delete_directories(directories)
+    func.remove_pdf_and_docx_files_in_script_directory()
     internal_template_button(uploaded_files)
 
 if st.sidebar.button("Client Template") and uploaded_files is not None:
+    func.delete_directories(directories) 
+    func.remove_pdf_and_docx_files_in_script_directory()
     client_template_button(uploaded_files)
 
 if st.sidebar.button("Client Template with Photo") and uploaded_files is not None:
+    func.delete_directories(directories)
+    func.remove_pdf_and_docx_files_in_script_directory()
     client_template_with_photo_button(uploaded_files)
