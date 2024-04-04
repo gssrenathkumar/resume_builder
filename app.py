@@ -57,21 +57,25 @@ def process_resume(uploaded_files, filename):
             return
         # Get name response
         name = func.get_name_response(resume_text)
-        work_experience = func.get_work_experience_response(resume_text)
+        
+        education_overall1 = func.get_education_details_overall(resume_text)
+        # Get degree details response
+        degree_details = func.get_degree_details_response(education_overall1)
+        # Get education details response
+        education_details = func.get_education_details_response(education_overall1)
+        # Get education years in descending order response
+        education_years_descending = func.get_education_years_response(education_overall1)
 
-        # Get summary response
+        
+        work_experience = func.get_work_experience_response(resume_text)
         summary = func.get_summary_response(resume_text)     
         # Get certifications response
         certifications = func.get_certifications_response(resume_text)
-        # Get degree details response
-        degree_details = func.get_degree_details_response(resume_text)
-        # Get education details response
-        education_details = func.get_education_details_response(resume_text)
-        # Get education years in descending order response
-        education_years_descending = func.get_education_years_response(resume_text)
         # Get technical skills response
         technical_skills = func.get_technical_skills_response2(resume_text)
-       
+
+        
+        
         # Fill in the Word document template for all sections
         template_path = 'Templates/agilisium_template.docx'
         output_path = f'agilisium_resume_internal_template/{filename}_resume.docx'
@@ -128,9 +132,10 @@ def process_resume_2(uploaded_files, filename):
         output_path = f'agilisium_resume_client_format/{filename}_resume.docx'
         summar = "DASdSDAas"
         func.fill_invitation2(template_path, output_path,summary2,skills1,project_experience,certifications1,summar)
-        degree_details1 = func.get_degree_details_response(resume_text)
-        education_details1 = func.get_education_details_response(resume_text)
-        education_years_descending1 = func.get_education_years_response(resume_text)
+        education_overall1 = func.get_education_details_overall(resume_text)
+        degree_details1 = func.get_degree_details_response(education_overall1)
+        education_details1 = func.get_education_details_response(education_overall1)
+        education_years_descending1 = func.get_education_years_response(education_overall1)
         func.fill_table_degree_details(output_path, output_path, degree_details1)
         func.fill_table_institute_details(output_path, output_path, education_details1)
         func.fill_table_education_years(output_path, output_path, education_years_descending1)
@@ -174,10 +179,11 @@ def process_resume_3(uploaded_files,filename):
         output_path = f'agilisium_resume_client_format_2/{filename}_resume.docx'
         func.fill_invitation3(template_path, output_path, name1, summary3)
         func.fill_table_skill_set(output_path, output_path, technical_skills3)
+        education_overall1 = func.get_education_details_overall(resume_text)
+        degree_details1 = func.get_degree_details_response(education_overall1)
+        education_details1 = func.get_education_details_response(education_overall1)
+        education_years_descending1 = func.get_education_years_response(education_overall1)
         
-        degree_details1 = func.get_degree_details_response(resume_text)
-        education_details1 = func.get_education_details_response(resume_text)
-        education_years_descending1 = func.get_education_years_response(resume_text)
         func.fill_table_degree_details(output_path, output_path, degree_details1)
         func.fill_table_institute_details(output_path, output_path, education_details1)
         func.fill_table_education_years(output_path, output_path, education_years_descending1)
