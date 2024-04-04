@@ -14,14 +14,28 @@ from docx.shared import Pt
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import cv2
+from PIL import Image
+import streamlit as st
 from zipfile import ZipFile
+from io import BytesIO
+import os
 import shutil
 from docx2pdf import convert
 from PIL import Image, ImageDraw
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-#----------------------------
 
+#----------------------------
+# Function to get response from text-based model for name query
+def get_education_details_overall(input_text):
+    input_prompt = """
+        You are a data extracter. You have to extract the data from the given text. 
+        You will have to answer the questions based on the input text.
+        
+    """
+    name_query = "Your objective is to scrutinize the provided input text, identifying and extracting mentions of academic degrees and diplomas. With each qualification you find, you must also capture and include the name of the institute that awarded it, as well as the year the degree or diploma was awarded. Focus exclusively on academic degrees (e.g., B.A., M.S., Ph.D.) and diplomas. Organize your findings in a structured list format, where each entry is formatted as follows: 'Degree/Diploma, Institute Name, Year of Study.' Ensure precision in detailing the titles of degrees/diplomas, the names of the institutions, and the correct corresponding years. Omit any educational details that do not directly correspond to this format or that do not include academic degrees or diplomas."
+    query = input_prompt + name_query
+    model = genai.GenerativeModel("gemini-pro")
+    response = model.generate_content([input_text, query])
+    return response.text
 
 #------------------------
 
@@ -51,35 +65,13 @@ def convert_to_pdf_if_docx(file_path):
     Returns:
     - str: Converted file path if it's a .docx, else the original file path.
     """
-    # Check if the file is a .docx
-    if file_path.endswith('.docx'):
-        # Define the PDF path
-        pdf_path = file_path.rsplit('.', 1)[0] + '.pdf'
-        
-        # Load the .docx document
-        document = Document(file_path)
-        
-        # Set up the PDF canvas
-        c = canvas.Canvas(pdf_path, pagesize=letter)
-        width, height = letter  # Get width and height of the page
-        
-        # Simple text positioning for demonstration purposes
-        y_position = height - 72  # Start 1 inch from the top
-        for paragraph in document.paragraphs:
-            c.drawString(72, y_position, paragraph.text)
-            y_position -= 12  # Move down 12 points for the next line
-            
-            # Check if we're near the bottom of the page
-            if y_position < 72:
-                c.showPage()  # Start a new page
-                y_position = height - 72  # Reset the y position
-        
-        c.save()
-        
-        # Return the PDF path
-        return pdf_path
+    file_name, file_extension = os.path.splitext(file_path)
+    
+    if file_extension.lower() == '.docx':
+        pdf_file_path = f"{file_name}.pdf"
+        convert(file_path, pdf_file_path)
+        return pdf_file_path
     else:
-        # Return the original file path if it's not a .docx file
         return file_path
 
 # Function to delete directories
@@ -126,6 +118,8 @@ def replace_hyphens_with_bullet_points(doc_name):
             para.text = para.text.replace('>', '\u2022')
         if 'None' in para.text:
             para.text = para.text.replace('None',' ')
+        if 'NA' in para.text:
+            para.text = para.text.replace('NA',' ')
     return document
     
 def replace_symbol_with_dash(doc_name):
@@ -218,7 +212,7 @@ def get_degree_details_response(input_text):
         You will have to answer the questions based on the input resume text.
         
     """
-    degree_query = "Get only the college degrees and school degrees from the resume.First college degree should come and then school degree should come.The school degree will be like CBSE,ICSE etc.Format is degree1?degree2?degree3.If there is no degree leave it blank if it is empty."
+    degree_query = "Extract degree name alone from the given text input, as per the given input text order.Format is degree1?degree2?degree3."
     model = genai.GenerativeModel("gemini-pro")
     query = input_prompt + degree_query
     response = model.generate_content([input_text, query])
@@ -232,7 +226,7 @@ def get_education_details_response(input_text):
         You will have to answer the questions based on the input resume text.
         
     """
-    education_query = "Get only the college and school name and if there is duplication of schools add duplicates too from the resume.Format is name1?name2?name3.Also check with count of degrees if there are 3 degrees then get 3 names or if there are 4 degrees then get 4 names.I want first college names and then school names in descending order.Sort it by year of passing.It should be in perfect order.If there is no school name leave it blank if it is empty."
+    education_query = "Get institution name from the given text input,as per the given input text order.Duplication is allowed.Format is institute1?institute2?institute3"
 
 
     
@@ -248,7 +242,7 @@ def get_education_years_response(input_text):
         You will have to answer the questions based on the input resume text.
         
     """
-    years_query = "Get all College year in descending order .Format is year1 should be greater that year2 should be greater than year3.Capture college only from education section alone.Format is very very important."
+    years_query = "Get the year of passing for each degree.The passing out year for each degree.Format is year1?year2?year3."
     model = genai.GenerativeModel("gemini-pro")
     query = input_prompt + years_query
     response = model.generate_content([input_text, query])
@@ -494,6 +488,12 @@ def fill_table_skill_set(template_path, output_path, skill_set):
 
 
 def get_work_experience_response(input_text):
+    
+    input_prompt = """
+        You are a data extracter. You have to extract the data from the given text. 
+        You will have to answer the questions based on the input text.
+        
+    """
     experience_query = """
 Generate project details in the following format for each project in the work or internship experience:
 Remeber the format given is very important which should be generated as per the given below
@@ -501,7 +501,7 @@ Remeber the format given is very important which should be generated as per the 
 ?/Title:?/ Project Title
 ?/Role :?/ What was the role of mine.If there are no role name specified, then print None
 ?/Period:?/ Project Period.Format is year1 &! year2
-?/Technologies used :?/ technologies used in this project.If there are no skills specified, then print None \n
+?/Technologies used :?/ Technologies used in that specific project.Predict from that particular project details. \n
 ?/Role and Responsibilities:?/
 > Responsibility 1
 > Responsibility 2
@@ -510,8 +510,9 @@ Make these as points as it straightly send to docx.
 
 Repeat this format for all projects. Please ensure the content is sourced from the provided data without assumptions.
 """
+    query = input_prompt + experience_query
     model = genai.GenerativeModel("gemini-pro")
-    response = model.generate_content([input_text, experience_query])
+    response = model.generate_content([input_text, query])
     return response.text
 
 
