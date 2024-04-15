@@ -18,7 +18,7 @@ from zipfile import ZipFile
 st.set_page_config(page_title="Resume Data Extractor")
 st.header("Resume Data")
 
-api_key = st.text_input('Enter your API key', value='AIzaSyAbGYl1RWYku3ntot7fWhRXjwZlwNOJzvc')
+api_key = st.text_input('Enter your API key', value='AIzaSyAl5O_YsF9fMFCc1EwSAhwkJOEF704-LJM')
 genai.configure(api_key=api_key)
 
 def image_processing_genai(uploaded_files):
